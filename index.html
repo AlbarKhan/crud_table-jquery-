@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <style>
+        .table-title {
+            text-align: center;
+        }
+        h2 {
+            font-weight: 400;
+        }
+        .errmsg {
+            color: rgba(255, 0, 0, 0.582);
+            font-size: 16px;
+        }
+    .notify {
+        width: 100%;
+        background-color: #99FF99;
+        color: #1d2630;
+        padding: 10px;
+        border-radius: 10px;
+        /* height: 30px; */
+        display: none;
+        font-size: 18px;
+    }
+
+    span {
+        font-size: 30px;
+    }
+    </style>
+</head>
+<body style="color: white; background-color: #1d2630;">
+    <div class="container mt-5">
+        <div class="text-center">
+            <h1 class="display-5 mb-5"><strong>CRUD Application <span>(with jquery)</span></strong></h1>
+        </div>
+        <div class="notify" id="notify">
+
+        </div>
+        <div class="main row justify-content-center">
+            <form action="" id="form" class="row justify-content-center mb-4" autocomplete="off">
+                <div class="col-10 col-md-8 mb-3">
+                    <label for="firstName">First Name</label>
+                    <input class="form-control" id="firstName" type="text" placeholder="Enter First Name">
+                    <div class="errmsg" id="err-name" style="display: none;"></div>
+                </div>
+                <div class="col-10 col-md-8 mb-3">
+                    <label for="lastName">Last Name</label>
+                    <input class="form-control" id="lastName" type="text" placeholder="Enter last Name">
+                    <div class="errmsg" id="err-lastname" style="display: none;">Please Enter Last Name</div>
+                </div>
+                <div class="col-10 col-md-8 mb-3">
+                    <label for="phonenumber">Phone Number</label>
+                    <input class="form-control" id="phonenumber" type="number" placeholder="Enter phone number">
+                    <div class="errmsg" id="err-number" style="display: none;"></div>
+                </div>
+                <div class="col-10 col-md-8 col-md-8 mb-3">
+                    <label for="email">Email</label>
+                    <input class="form-control" id="email" type="text" placeholder="Enter email">
+                    <div class="errmsg" id="err-mail" style="display: none;"></div>
+                </div>
+                <div class="col-10 col-md-8">
+                    <!-- <input class="btn btn-success add-btn" type="submit" value="submit" id="btn"> -->
+                    <button  class="btn btn-success add-btn" type="submit" id="submit-btn" style="display: block;">Submit</button>
+                    <button class=" btn btn-success add-btn" type="submit" id="update-btn" style="display: none;margin-right: 25px;">Update</button>
+                    <button class="btn btn-danger bt danger" type="button" id="cancel-btn" style="display: none;" onclick="cancel()">Cancel</button>
+                </div> 
+            </form>
+            <div class="col-12  mt-5">
+                <table class="table table-striped table-dark">
+                    <thead>
+                        <tr>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Phone Number</th>
+                            <th>Email ID</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <tr>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        const items = [];
+        let editingIndex = -1;
+
+        $(document).ready(function () {
+            $('#form').submit(function (e) {
+                e.preventDefault();
+
+                const name = $('#firstName').val();
+                const lastname = $('#lastName').val();
+                const phone = $('#phonenumber').val();
+                const email = $('#email').val();
+
+                if(name == "" || name == null){
+                    $('#err-name').show().text('invalid name');
+                    return;
+                }
+                else {
+                    $('#err-name').hide();
+                }
+                if(lastname.trim() == "" || lastname ==null){
+                    $('#err-lastname').show();
+                    return;
+                }
+                else{
+                    $('#err-lastname').hide();
+                }
+                if(phone.length == null || phone.length <1){
+                    $('#err-number').show().text("phone number can't be blank");
+                    return;
+                }
+                else{
+                    $('#err-number').hide();
+                }
+                if(phone.length <10){
+                    $('#err-number').show().text("phone number can't be less than 10");
+                    return;
+                }
+                else{
+                    $('#err-number').hide();
+                }
+                if(phone.length >10){
+                    $('#err-number').show().text("phone number can't be greater than 10");
+                    return;
+                }
+                else{
+                    $('#err-number').hide();
+                }
+                if(isValidEmail(email)){
+                    $('#err-mail').hide();
+                }
+                else{
+                    $('#err-mail').show().text("Invalid email");
+                    return;
+                }
+
+                if (editingIndex == -1) {
+                    if (items.some(item => item.name == name)) {
+                        $('#err-name').text('Name Already Exists');
+                        $('#err-name').show();
+                        return;
+                    } else {
+                        const newItem = { name, lastname, phone, email };
+                        items.push(newItem);
+                        $('#notify').show().text('Submitted').css('background-color', '#99FF99');
+                    }
+                } else {
+                    // Edit existing item in the items array
+                    const editedItem = items[editingIndex];
+                    editedItem.name = name;
+                    editedItem.lastname = lastname;
+                    editedItem.phone = phone;
+                    editedItem.email = email;
+                    $('#update-btn, #cancel-btn').hide();
+                    $('#submit-btn').show();
+                    $('#notify').show().text('Edited').css('background-color', '#99FF99');
+                    editingIndex = -1;
+                }
+                
+                updateTable();
+                $('#form')[0].reset();
+            });
+
+        });
+
+        function updateTable() {
+            const tableBody = $('#table-body');
+            tableBody.empty();
+
+            if (items.length === 0) {
+                const noRecords = $('<tr><td colspan="5" class="table-title"><h2>No Records Entered Yet</h2></td></tr>');
+                tableBody.append(noRecords);
+            } else {
+                items.forEach((item, index) => {
+                    const row = $('<tr><td>' + item.name + '</td><td>' + item.lastname + '</td><td>' + item.phone + '</td><td>' + item.email + '</td><td><button class="btn btn-warning btn-sm edit" onClick="edit(' + index + ')">Edit</button>  <button class="btn btn-danger btn-sm danger" onClick="deleteItem(' + index + ')">Delete</button></td></tr>');
+                    tableBody.append(row);
+                });
+            }
+        }
+
+        function edit(index) {
+            const editedItem = items[index];
+            editingIndex = index;
+
+            $('#firstName').val(editedItem.name);
+            $('#lastName').val(editedItem.lastname);
+            $('#phonenumber').val(editedItem.phone);
+            $('#email').val(editedItem.email);
+
+            $('#update-btn, #cancel-btn').show();
+            $('#submit-btn').hide();
+        }
+
+        function deleteItem(index) {
+            items.splice(index, 1);
+            $('#notify').show().text('Deleted').css('background-color', '#FF6666');
+            updateTable();
+        }
+
+        function cancel() {
+            $('#update-btn, #cancel-btn').hide();
+            $('#submit-btn').show();
+            $('#form')[0].reset();
+            editingIndex =-1;
+        }
+
+        function isValidEmail(Email) {
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(Email);
+        }
+
+        updateTable();
+    </script>
+
+</body>
+</html>
